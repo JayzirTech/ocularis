@@ -1,0 +1,15 @@
+{
+  "name": "ocularis",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Experiencia educativa óptica interactiva para consulta optométrica",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
