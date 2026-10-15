@@ -4,22 +4,26 @@ import { stateMachine, States } from '../core/state-machine.js';
 
 /**
  * Escena de refracción óptica y trazado de rayos interactivo.
- * Soporta modo Miopía (elongación axial + lente divergente) y
+ * Soporta modo Miopía (elongación axial + lente divergente),
+ * Hipermetropía (acortamiento axial + lente convergente) y
  * Astigmatismo (asimetría meridional + lente cilíndrica/tórica).
  */
 export class RefractionScene {
   /**
-   * @param {'myopia'|'astigmatism'} mode 
+   * @param {'myopia'|'hyperopia'|'astigmatism'} mode 
    */
   constructor(mode = 'myopia') {
-    this.mode = mode; // 'myopia' | 'astigmatism'
+    this.mode = mode; // 'myopia' | 'hyperopia' | 'astigmatism'
     this.geometry = new EyeGeometry();
-    this.lens = new CorrectiveLens(mode === 'myopia' ? 'divergent' : 'toric');
+    const lensType = mode === 'myopia' ? 'divergent' : (mode === 'hyperopia' ? 'convergent' : 'toric');
+    this.lens = new CorrectiveLens(lensType);
     this.time = 0;
 
     // Parámetros específicos
     if (mode === 'myopia') {
       this.geometry.axialElongation = 55; // Ojo elongado por defecto
+    } else if (mode === 'hyperopia') {
+      this.geometry.axialElongation = -45; // Ojo acortado en hipermetropía
     } else {
       this.geometry.axialElongation = 0;
       this.astigmatismAngle = 90; // Eje a 90 grados
@@ -142,6 +146,92 @@ export class RefractionScene {
           stateMachine.jumpTo(States.MYOPIA_PERCEPTION);
         });
       }
+    } else if (this.mode === 'hyperopia') {
+      // Modo Hipermetropía
+      if (kickerEl) kickerEl.textContent = 'MÓDULO: HIPERMETROPÍA';
+      if (titleEl) titleEl.textContent = 'Acortamiento Axial y Enfoque Post-Retiniano';
+      if (descEl) {
+        descEl.textContent = 'En la hipermetropía, el globo ocular es más corto de lo normal (o la córnea/cristalino tienen menor potencia refractiva). Los haces luminosos convergen en un punto focal virtual detrás de la retina, impidiendo enfocar nítidamente en distancias cortas y causando fatiga visual.';
+      }
+
+      if (dockEl) {
+        dockEl.style.display = 'flex';
+        dockEl.innerHTML = `
+          <div class="refraction-controls-card">
+            <div class="refraction-controls-grid">
+              <!-- Slider de Acortamiento Axial -->
+              <div class="dock-control-item">
+                <div class="dock-control-header">
+                  <span>Longitud Axial del Globo Ocular:</span>
+                  <span class="dock-control-val" id="dock-val-param">${this.geometry.axialElongation < -15 ? 'Acortado (Hipermétrope)' : 'Normal (Emétrope)'}</span>
+                </div>
+                <input type="range" class="range-slider" id="dock-slider" min="-70" max="0" value="${this.geometry.axialElongation}">
+              </div>
+
+              <!-- Selector de Lente Convergente -->
+              <div class="dock-control-item">
+                <div class="dock-control-header">
+                  <span>Corrección con Lente Convergente:</span>
+                </div>
+                <div class="toggle-btn-group">
+                  <button class="toggle-pill-btn ${!this.lens.active ? 'active' : ''}" id="dock-btn-no-lens">
+                    Sin Lente (Hipermetropía)
+                  </button>
+                  <button class="toggle-pill-btn ${this.lens.active ? 'active' : ''}" id="dock-btn-with-lens">
+                    Con Lente Convergente (+)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón directo al Ejemplo de Percepción -->
+          <div class="dock-action-separator">
+            <button class="btn-goto-simulation" id="btn-goto-simulation" type="button" title="Ver cómo percibe el mundo el paciente en la vida real">
+              <span class="btn-sim-content">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                <span>Ver Ejemplo de Visión en la Vida Real</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </span>
+            </button>
+          </div>
+        `;
+
+        const slider = dockEl.querySelector('#dock-slider');
+        const valText = dockEl.querySelector('#dock-val-param');
+        const btnNoLens = dockEl.querySelector('#dock-btn-no-lens');
+        const btnWithLens = dockEl.querySelector('#dock-btn-with-lens');
+        const btnGotoSim = dockEl.querySelector('#btn-goto-simulation');
+
+        slider?.addEventListener('input', (e) => {
+          const val = parseInt(e.target.value, 10);
+          this.geometry.axialElongation = val;
+          if (valText) {
+            valText.textContent = val < -35 ? 'Alta Hipermetropía' : (val < -10 ? 'Hipermetropía Moderada' : 'Normal (Emétrope)');
+          }
+        });
+
+        btnNoLens?.addEventListener('click', () => {
+          this.lens.active = false;
+          btnNoLens.classList.add('active');
+          btnWithLens.classList.remove('active');
+        });
+
+        btnWithLens?.addEventListener('click', () => {
+          this.lens.active = true;
+          btnWithLens.classList.add('active');
+          btnNoLens.classList.remove('active');
+        });
+
+        btnGotoSim?.addEventListener('click', () => {
+          stateMachine.jumpTo(States.HYPEROPIA_PERCEPTION);
+        });
+      }
     } else {
       // Modo Astigmatismo
       if (kickerEl) kickerEl.textContent = 'MÓDULO: ASTIGMATISMO';
@@ -246,9 +336,19 @@ export class RefractionScene {
     const isCorrected = this.lens.active && this.lens.opacity > 0.8;
 
     // 1. Dibuja el corte anatómico sagital
+    let uncorrectedColor = '#ec4899';
+    let uncorrectedGlow = 'rgba(236, 72, 153, 0.4)';
+    if (this.mode === 'myopia') {
+      uncorrectedColor = '#f59e0b';
+      uncorrectedGlow = 'rgba(245, 158, 11, 0.4)';
+    } else if (this.mode === 'hyperopia') {
+      uncorrectedColor = '#a855f7';
+      uncorrectedGlow = 'rgba(168, 85, 247, 0.45)';
+    }
+
     this.geometry.drawSagittal(ctx, {
-      retinaColor: isCorrected ? '#10b981' : (this.mode === 'myopia' && this.geometry.axialElongation > 15 ? '#f59e0b' : '#ec4899'),
-      retinaGlow: isCorrected ? 'rgba(16, 185, 129, 0.5)' : 'rgba(245, 158, 11, 0.4)'
+      retinaColor: isCorrected ? '#10b981' : uncorrectedColor,
+      retinaGlow: isCorrected ? 'rgba(16, 185, 129, 0.5)' : uncorrectedGlow
     });
 
     // 2. Dibuja la lente correctora frente a la córnea
@@ -260,11 +360,98 @@ export class RefractionScene {
 
     if (this.mode === 'myopia') {
       this.drawMyopiaRays(ctx, s, cApex, lCenter, rApex, lensX, isCorrected);
+    } else if (this.mode === 'hyperopia') {
+      this.drawHyperopiaRays(ctx, s, cApex, lCenter, rApex, lensX, isCorrected);
     } else {
       this.drawAstigmatismRays(ctx, s, cApex, lCenter, rApex, lensX, isCorrected);
     }
 
     ctx.restore();
+  }
+
+  drawHyperopiaRays(ctx, s, cApex, lCenter, rApex, lensX, isCorrected) {
+    const rayOffsets = [-50, -32, -15, 0, 15, 32, 50];
+    const sourceX = cApex.x - 260 * s;
+
+    // Cálculo del punto focal:
+    // En hipermetropía el ojo es más corto de lo normal.
+    // Los rayos convergen en un plano focal virtual DETRÁS de la retina.
+    // Con la lente convergente (+), la luz converge antes, llevando el foco directamente a la retina.
+    const actualRetinaX = rApex.x;
+    const hyperopicOffset = Math.max(35, Math.abs(this.geometry.axialElongation) * 1.3) * s;
+    const hyperopicFocalX = actualRetinaX + hyperopicOffset;
+    const effectiveFocalX = hyperopicFocalX - (hyperopicFocalX - actualRetinaX) * this.lens.opacity;
+
+    // Colores y glow según corrección
+    const rayColor = isCorrected ? 'rgba(16, 185, 129, 0.85)' : 'rgba(168, 85, 247, 0.85)';
+    const glowColor = isCorrected ? '#10b981' : '#a855f7';
+
+    ctx.lineWidth = 2 * s;
+    ctx.strokeStyle = rayColor;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 8 * s;
+
+    for (const offset of rayOffsets) {
+      const startY = this.geometry.centerY + offset * s;
+
+      ctx.beginPath();
+      ctx.moveTo(sourceX, startY);
+
+      // Si pasa por la lente convergente (+)
+      let entryY = startY;
+      if (this.lens.opacity > 0.05) {
+        ctx.lineTo(lensX, startY);
+        // Desviación convergente hacia el eje óptico
+        const deflection = this.lens.getDeflectionAngle(offset * s, s);
+        entryY = startY + deflection * 70 * s;
+      }
+
+      // Incidencia en la córnea
+      const corneaHitX = cApex.x + 8 * s;
+      ctx.lineTo(corneaHitX, entryY);
+
+      // Paso a través de la cámara anterior hacia el cristalino
+      const lensHitX = lCenter.x;
+      const lensHitY = entryY * 0.8 + this.geometry.centerY * 0.2;
+      ctx.lineTo(lensHitX, lensHitY);
+
+      // Rayo dentro del humor vítreo hacia la retina física
+      // La pendiente del rayo apunta al punto focal effectiveFocalX
+      const slope = (this.geometry.centerY - lensHitY) / (effectiveFocalX - lensHitX);
+      const retinaHitY = lensHitY + slope * (actualRetinaX - lensHitX);
+
+      ctx.lineTo(actualRetinaX, retinaHitY);
+      ctx.stroke();
+
+      // Proyección virtual punteada detrás de la retina cuando el foco es posterior
+      if (effectiveFocalX > actualRetinaX + 2 * s) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([4 * s, 4 * s]);
+        ctx.strokeStyle = 'rgba(192, 132, 252, 0.5)';
+        ctx.shadowBlur = 0;
+        ctx.moveTo(actualRetinaX, retinaHitY);
+        ctx.lineTo(effectiveFocalX, this.geometry.centerY);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Dibujo del punto focal
+    ctx.beginPath();
+    ctx.arc(effectiveFocalX, this.geometry.centerY, 6 * s, 0, Math.PI * 2);
+    ctx.fillStyle = isCorrected ? '#10b981' : '#a855f7';
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = 15 * s;
+    ctx.fill();
+
+    // Etiqueta del punto focal
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = ctx.fillStyle;
+    ctx.font = `700 ${11 * s}px 'Plus Jakarta Sans', sans-serif`;
+    ctx.textAlign = 'center';
+    const tag = isCorrected ? 'Foco Nítido en Retina' : 'Foco Posterior a Retina (Virtual)';
+    ctx.fillText(tag, effectiveFocalX, this.geometry.centerY - 20 * s);
   }
 
   drawMyopiaRays(ctx, s, cApex, lCenter, rApex, lensX, isCorrected) {

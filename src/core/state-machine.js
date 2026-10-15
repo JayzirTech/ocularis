@@ -6,6 +6,8 @@ export const States = Object.freeze({
   ANATOMY: 'anatomy',
   MYOPIA: 'myopia',
   MYOPIA_PERCEPTION: 'myopia-perception',
+  HYPEROPIA: 'hyperopia',
+  HYPEROPIA_PERCEPTION: 'hyperopia-perception',
   ASTIGMATISM: 'astigmatism',
   ASTIGMATISM_PERCEPTION: 'astigmatism-perception',
   SYNTHESIS: 'synthesis'
@@ -16,6 +18,8 @@ export const STAGE_SEQUENCE = [
   States.ANATOMY,
   States.MYOPIA,
   States.MYOPIA_PERCEPTION,
+  States.HYPEROPIA,
+  States.HYPEROPIA_PERCEPTION,
   States.ASTIGMATISM,
   States.ASTIGMATISM_PERCEPTION,
   States.SYNTHESIS
@@ -26,9 +30,11 @@ export const STAGE_TITLES = {
   [States.ANATOMY]: 'Etapa 2: Descubrir la Anatomía Interna',
   [States.MYOPIA]: 'Etapa 3: Física de la Miopía',
   [States.MYOPIA_PERCEPTION]: 'Etapa 4: Simulación de Visión Miópica',
-  [States.ASTIGMATISM]: 'Etapa 5: Física del Astigmatismo',
-  [States.ASTIGMATISM_PERCEPTION]: 'Etapa 6: Simulación de Visión Astigmática',
-  [States.SYNTHESIS]: 'Etapa 7: Conexión con tu Caso Clínico'
+  [States.HYPEROPIA]: 'Etapa 5: Física de la Hipermetropía',
+  [States.HYPEROPIA_PERCEPTION]: 'Etapa 6: Simulación de Visión Hipermétrope',
+  [States.ASTIGMATISM]: 'Etapa 7: Física del Astigmatismo',
+  [States.ASTIGMATISM_PERCEPTION]: 'Etapa 8: Simulación de Visión Astigmática',
+  [States.SYNTHESIS]: 'Etapa 9: Conexión con tu Caso Clínico'
 };
 
 class StateMachine {

@@ -1,6 +1,6 @@
 # 🔬 Ocularis — Experiencia Educativa Óptica
 
-Herramienta visual interactiva diseñada para la consulta optométrica presencial. Permite al profesional de la salud visual explicar al paciente, de forma clara y cinematográfica, cómo funcionan condiciones como la **miopía** y el **astigmatismo**, y cómo actúan las lentes correctoras.
+Herramienta visual interactiva diseñada para la consulta optométrica presencial. Permite al profesional de la salud visual explicar al paciente, de forma clara y cinematográfica, cómo funcionan condiciones como la **miopía**, la **hipermetropía** y el **astigmatismo**, y cómo actúan las lentes correctoras.
 
 > **No es una herramienta de diagnóstico.** Ocularis ilustra principios ópticos con fines pedagógicos.
 
@@ -27,11 +27,11 @@ SPA de lienzo único (sin rutas URL)
 │
 ├── Máquina de Estados (state-machine.js)
 │   Gobierna las transiciones entre escenas:
-│   Splash → Macro-Ojo → Anatomía → Miopía/Astigmatismo → Simulador → Síntesis
+│   Splash → Macro-Ojo → Anatomía → Miopía / Hipermetropía / Astigmatismo → Simulador → Síntesis
 │
 ├── Motor de Simulación Óptica (simulation/)
 │   Trazado de rayos 2D, cálculo de refracción,
-│   comportamiento de lentes divergentes y tóricas
+│   comportamiento de lentes divergentes, convergentes y tóricas
 │
 ├── Componentes Visuales (components/)
 │   Ojo interactivo, explorador anatómico, slider de percepción,

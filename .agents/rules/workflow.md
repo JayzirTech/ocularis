@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Reglas del Proyecto Ocularis
 
 ## 1. Entorno de Ejecución Exclusivo en Docker

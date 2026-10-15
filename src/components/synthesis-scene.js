@@ -39,6 +39,9 @@ export class SynthesisScene {
             <button class="toggle-pill-btn active" id="btn-re-myopia" style="text-align: left; padding: 12px 16px;">
               <span>🔍 Revisar de nuevo Miopía</span>
             </button>
+            <button class="toggle-pill-btn" id="btn-re-hyperopia" style="text-align: left; padding: 12px 16px;">
+              <span>🔮 Revisar de nuevo Hipermetropía</span>
+            </button>
             <button class="toggle-pill-btn" id="btn-re-astig" style="text-align: left; padding: 12px 16px;">
               <span>📐 Revisar de nuevo Astigmatismo</span>
             </button>
@@ -51,6 +54,9 @@ export class SynthesisScene {
 
       controlsEl.querySelector('#btn-re-myopia')?.addEventListener('click', () => {
         stateMachine.jumpTo(States.MYOPIA);
+      });
+      controlsEl.querySelector('#btn-re-hyperopia')?.addEventListener('click', () => {
+        stateMachine.jumpTo(States.HYPEROPIA);
       });
       controlsEl.querySelector('#btn-re-astig')?.addEventListener('click', () => {
         stateMachine.jumpTo(States.ASTIGMATISM);

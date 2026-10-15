@@ -7,10 +7,10 @@ import { stateMachine, States } from '../core/state-machine.js';
  */
 export class PerceptionSimulator {
   /**
-   * @param {'myopia'|'astigmatism'} mode 
+   * @param {'myopia'|'hyperopia'|'astigmatism'} mode 
    */
   constructor(mode = 'myopia') {
-    this.mode = mode; // 'myopia' | 'astigmatism'
+    this.mode = mode; // 'myopia' | 'hyperopia' | 'astigmatism'
     this.container = null;
     this.divider = null;
     this.wrapper = null;
@@ -39,16 +39,26 @@ export class PerceptionSimulator {
 
     const blurTag = document.getElementById('perception-blur-tag');
     if (blurTag) {
-      blurTag.textContent = this.mode === 'myopia' ? 'Visión con Miopía (Desenfoque Lejano)' : 'Visión con Astigmatismo (Distorsión & Sombras)';
+      if (this.mode === 'myopia') {
+        blurTag.textContent = 'Visión con Miopía (Desenfoque Lejano)';
+      } else if (this.mode === 'hyperopia') {
+        blurTag.textContent = 'Visión con Hipermetropía (Desenfoque de Cerca & Fatiga)';
+      } else {
+        blurTag.textContent = 'Visión con Astigmatismo (Distorsión & Sombras)';
+      }
     }
 
     // 2. Configurar el botón para salir del ejemplo y volver a la explicación clínica
     const btnExit = document.getElementById('btn-exit-simulation');
     const btnExitText = document.getElementById('btn-exit-simulation-text');
     if (btnExitText) {
-      btnExitText.textContent = this.mode === 'myopia' 
-        ? 'Volver a la Explicación de Miopía' 
-        : 'Volver a la Explicación de Astigmatismo';
+      if (this.mode === 'myopia') {
+        btnExitText.textContent = 'Volver a la Explicación de Miopía';
+      } else if (this.mode === 'hyperopia') {
+        btnExitText.textContent = 'Volver a la Explicación de Hipermetropía';
+      } else {
+        btnExitText.textContent = 'Volver a la Explicación de Astigmatismo';
+      }
     }
     if (btnExit) {
       if (this.boundExitHandler) {
@@ -57,6 +67,8 @@ export class PerceptionSimulator {
       this.boundExitHandler = () => {
         if (this.mode === 'myopia') {
           stateMachine.jumpTo(States.MYOPIA);
+        } else if (this.mode === 'hyperopia') {
+          stateMachine.jumpTo(States.HYPEROPIA);
         } else {
           stateMachine.jumpTo(States.ASTIGMATISM);
         }
@@ -125,6 +137,41 @@ export class PerceptionSimulator {
         controlsEl.querySelector('#btn-compare-all')?.addEventListener('click', () => this.updateSplit(50));
         controlsEl.querySelector('#btn-view-blur')?.addEventListener('click', () => this.updateSplit(100));
         controlsEl.querySelector('#btn-view-sharp')?.addEventListener('click', () => this.updateSplit(0));
+      }
+    } else if (this.mode === 'hyperopia') {
+      if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
+      if (titleEl) titleEl.textContent = '¿Cómo ve el mundo un paciente con Hipermetropía?';
+      if (descEl) {
+        descEl.textContent = 'La visión de lejos suele mantenerse aceptable gracias al esfuerzo acomodativo del cristalino, pero en visión cercana (lectura, pantallas, teléfono) las letras pierden definición y se vuelven borrosas, provocando fatiga ocular y dolor de cabeza.';
+      }
+      if (controlsEl) {
+        controlsEl.innerHTML = `
+          <div class="control-row">
+            <div class="control-label">
+              <span>Potencia Dióptrica (+) Simulada:</span>
+              <span class="control-val" id="val-hyper">+3.00 D</span>
+            </div>
+            <input type="range" class="range-slider" id="slider-hyper" min="1" max="6" value="3" step="0.5">
+          </div>
+          <div class="toggle-btn-group">
+            <button class="toggle-pill-btn active" id="btn-hyper-50">Comparativa 50/50</button>
+            <button class="toggle-pill-btn" id="btn-hyper-blur">Solo Hipermetropía</button>
+            <button class="toggle-pill-btn" id="btn-hyper-sharp">Solo Corregida</button>
+          </div>
+        `;
+
+        const slider = controlsEl.querySelector('#slider-hyper');
+        const valText = controlsEl.querySelector('#val-hyper');
+        slider?.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          this.blurAmount = val * 2.8;
+          if (valText) valText.textContent = `+${val.toFixed(2)} D`;
+          this.renderTestScenes();
+        });
+
+        controlsEl.querySelector('#btn-hyper-50')?.addEventListener('click', () => this.updateSplit(50));
+        controlsEl.querySelector('#btn-hyper-blur')?.addEventListener('click', () => this.updateSplit(100));
+        controlsEl.querySelector('#btn-hyper-sharp')?.addEventListener('click', () => this.updateSplit(0));
       }
     } else {
       if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
@@ -195,19 +242,20 @@ export class PerceptionSimulator {
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    if (isBlurred) {
-      if (this.mode === 'myopia') {
-        // Desenfoque Gaussiano esférico de miopía
-        ctx.filter = `blur(${this.blurAmount}px)`;
-      } else {
-        // Astigmatismo: desenfoque anisotrópico + duplicación con sombra direccional
-        ctx.filter = `blur(${this.blurAmount * 0.7}px)`;
-      }
-    } else {
+    // Configuración de desenfoque diferencial según condición clínica
+    // A) Optotipo Snellen retroiluminado a la izquierda (Visión Cercana de Gabinete / Lectura)
+    ctx.save();
+    if (!isBlurred) {
       ctx.filter = 'none';
+    } else if (this.mode === 'myopia') {
+      ctx.filter = `blur(${this.blurAmount}px)`;
+    } else if (this.mode === 'hyperopia') {
+      // En hipermetropía la visión de cerca es la más perjudicada
+      ctx.filter = `blur(${this.blurAmount * 1.55}px)`;
+    } else {
+      ctx.filter = `blur(${this.blurAmount * 0.7}px)`;
     }
 
-    // A) Optotipo Snellen retroiluminado a la izquierda
     const chartX = 140;
     const chartY = 60;
     const chartW = 320;
@@ -217,7 +265,7 @@ export class PerceptionSimulator {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(chartX, chartY, chartW, chartH);
     ctx.lineWidth = 4;
-    ctx.strokeStyle = '#0284c7';
+    ctx.strokeStyle = this.mode === 'hyperopia' && isBlurred ? '#a855f7' : '#0284c7';
     ctx.strokeRect(chartX, chartY, chartW, chartH);
 
     // Letras Snellen nítidas
@@ -241,7 +289,22 @@ export class PerceptionSimulator {
     ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
     ctx.fillText('E  D  F  C  Z  P', chartX + chartW / 2, chartY + 370);
 
-    // B) Paisaje urbano nocturno a la derecha (Semáforos y Luces lejanas)
+    ctx.restore();
+
+    // B) Paisaje urbano nocturno a la derecha (Visión Lejana / Semáforos y Luces)
+    ctx.save();
+    if (!isBlurred) {
+      ctx.filter = 'none';
+    } else if (this.mode === 'myopia') {
+      ctx.filter = `blur(${this.blurAmount}px)`;
+    } else if (this.mode === 'hyperopia') {
+      // En hipermetropía la visión lejana se mantiene mucho más clara
+      const farBlur = Math.max(0, (this.blurAmount - 6) * 0.25);
+      ctx.filter = farBlur > 0 ? `blur(${farBlur}px)` : 'none';
+    } else {
+      ctx.filter = `blur(${this.blurAmount * 0.7}px)`;
+    }
+
     const sceneX = 520;
     const sceneY = 60;
     const sceneW = 340;
@@ -266,14 +329,23 @@ export class PerceptionSimulator {
 
     lights.forEach(l => {
       ctx.beginPath();
-      const radius = isBlurred && this.mode === 'myopia' ? l.r * (1 + this.blurAmount * 0.45) : l.r;
+      let radius = l.r;
+      if (isBlurred) {
+        if (this.mode === 'myopia') {
+          radius = l.r * (1 + this.blurAmount * 0.45);
+        } else if (this.mode === 'hyperopia') {
+          radius = l.r * (1 + this.blurAmount * 0.08);
+        }
+      }
       ctx.arc(l.x, l.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = l.color;
       ctx.shadowColor = l.color;
-      ctx.shadowBlur = isBlurred ? 25 : 10;
+      ctx.shadowBlur = isBlurred ? (this.mode === 'hyperopia' ? 12 : 25) : 10;
       ctx.fill();
       ctx.shadowBlur = 0;
     });
+
+    ctx.restore();
 
     // En astigmatismo: dibuja sombra fantasma superpuesta
     if (isBlurred && this.mode === 'astigmatism') {

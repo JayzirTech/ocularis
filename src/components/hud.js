@@ -90,6 +90,7 @@ export class HudController {
       const isMatch = (jump === 'eye-hero' && toState === States.EYE_HERO) ||
                       (jump === 'anatomy' && toState === States.ANATOMY) ||
                       (jump === 'myopia' && (toState === States.MYOPIA || toState === States.MYOPIA_PERCEPTION)) ||
+                      (jump === 'hyperopia' && (toState === States.HYPEROPIA || toState === States.HYPEROPIA_PERCEPTION)) ||
                       (jump === 'astigmatism' && (toState === States.ASTIGMATISM || toState === States.ASTIGMATISM_PERCEPTION));
       btn.classList.toggle('active', isMatch);
     });

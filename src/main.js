@@ -20,6 +20,8 @@ class App {
     this.anatomyScene = new AnatomyExplorerScene();
     this.myopiaRefractionScene = new RefractionScene('myopia');
     this.myopiaPerceptionScene = new PerceptionSimulator('myopia');
+    this.hyperopiaRefractionScene = new RefractionScene('hyperopia');
+    this.hyperopiaPerceptionScene = new PerceptionSimulator('hyperopia');
     this.astigmatismRefractionScene = new RefractionScene('astigmatism');
     this.astigmatismPerceptionScene = new PerceptionSimulator('astigmatism');
     this.synthesisScene = new SynthesisScene();
@@ -88,12 +90,15 @@ class App {
     if (from === States.MYOPIA_PERCEPTION) {
       this.myopiaPerceptionScene.onExit();
     }
+    if (from === States.HYPEROPIA_PERCEPTION) {
+      this.hyperopiaPerceptionScene.onExit();
+    }
     if (from === States.ASTIGMATISM_PERCEPTION) {
       this.astigmatismPerceptionScene.onExit();
     }
 
     // Ocultar dock de refracción al entrar a cualquiera de los ejemplos de percepción
-    if (to === States.MYOPIA_PERCEPTION || to === States.ASTIGMATISM_PERCEPTION) {
+    if (to === States.MYOPIA_PERCEPTION || to === States.HYPEROPIA_PERCEPTION || to === States.ASTIGMATISM_PERCEPTION) {
       const dockEl = document.getElementById('refraction-dock');
       if (dockEl) {
         dockEl.style.display = 'none';
@@ -141,6 +146,16 @@ class App {
         case States.MYOPIA_PERCEPTION:
           if (sceneOverlay) sceneOverlay.style.display = 'block';
           this.myopiaPerceptionScene.onEnter();
+          break;
+
+        case States.HYPEROPIA:
+          if (sceneOverlay) sceneOverlay.style.display = 'block';
+          this.engine.transitionTo(this.hyperopiaRefractionScene, transitionType, duration);
+          break;
+
+        case States.HYPEROPIA_PERCEPTION:
+          if (sceneOverlay) sceneOverlay.style.display = 'block';
+          this.hyperopiaPerceptionScene.onEnter();
           break;
 
         case States.ASTIGMATISM:
