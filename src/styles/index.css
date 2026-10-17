@@ -745,6 +745,24 @@ html, body {
   font-weight: 700;
 }
 
+.dock-val-badge {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  font-size: 0.72rem;
+  margin-left: 4px;
+}
+
+.dock-control-footer {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  font-size: 0.73rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  letter-spacing: 0.01em;
+  padding-top: 2px;
+}
+
 /* Separador y Botón hacia el Ejemplo / Simulación */
 .dock-action-separator {
   margin-top: 18px; /* Buena distancia respecto a los controles solicitada por el usuario */
@@ -980,12 +998,22 @@ html, body {
   border: 1px solid var(--border-subtle);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(0, 242, 254, 0.15);
   background: #000;
+  container-type: inline-size;
 }
 
-.perception-sharp, .perception-blurred {
+.perception-sharp {
   position: absolute;
   inset: 0;
   width: 100%;
+  height: 100%;
+}
+
+.perception-blurred {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 100cqw;
   height: 100%;
 }
 
@@ -1004,6 +1032,11 @@ html, body {
   width: 50%;
   overflow: hidden;
   z-index: 2;
+}
+
+.perception-blurred-wrapper.split-animating,
+.perception-divider.split-animating {
+  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1), left 0.32s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .perception-tag {

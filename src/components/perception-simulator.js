@@ -14,6 +14,7 @@ export class PerceptionSimulator {
     this.container = null;
     this.divider = null;
     this.wrapper = null;
+    this.sceneEl = null;
     this.isDragging = false;
     this.splitPercent = 50;
 
@@ -21,6 +22,13 @@ export class PerceptionSimulator {
     this.blurredCanvas = null;
     this.blurAmount = 8; // px de desenfoque base
     this.boundExitHandler = null;
+    this.animTimeout = null;
+    this.boundSceneClick = null;
+    this.boundMouseMove = null;
+    this.boundTouchMove = null;
+    this.boundPointerUp = null;
+    this.boundDividerDown = null;
+    this.boundDividerTouchStart = null;
   }
 
   onEnter() {
@@ -95,6 +103,11 @@ export class PerceptionSimulator {
       btnExit.removeEventListener('click', this.boundExitHandler);
       this.boundExitHandler = null;
     }
+    if (this.animTimeout) {
+      clearTimeout(this.animTimeout);
+      this.animTimeout = null;
+    }
+    this.detachDragListeners();
   }
 
   setupCardContent() {
@@ -119,9 +132,9 @@ export class PerceptionSimulator {
             <input type="range" class="range-slider" id="slider-diopter" min="1" max="6" value="3" step="0.5">
           </div>
           <div class="toggle-btn-group">
-            <button class="toggle-pill-btn active" id="btn-compare-all">Ver Comparativa 50/50</button>
-            <button class="toggle-pill-btn" id="btn-view-blur">Solo Visión Paciente</button>
-            <button class="toggle-pill-btn" id="btn-view-sharp">Solo Visión Corregida</button>
+            <button class="toggle-pill-btn active" id="btn-compare-all" data-split="50">Ver Comparativa 50/50</button>
+            <button class="toggle-pill-btn" id="btn-view-blur" data-split="100">Solo Visión Paciente</button>
+            <button class="toggle-pill-btn" id="btn-view-sharp" data-split="0">Solo Visión Corregida</button>
           </div>
         `;
 
@@ -134,9 +147,13 @@ export class PerceptionSimulator {
           this.renderTestScenes();
         });
 
-        controlsEl.querySelector('#btn-compare-all')?.addEventListener('click', () => this.updateSplit(50));
-        controlsEl.querySelector('#btn-view-blur')?.addEventListener('click', () => this.updateSplit(100));
-        controlsEl.querySelector('#btn-view-sharp')?.addEventListener('click', () => this.updateSplit(0));
+        const toggleBtns = controlsEl.querySelectorAll('.toggle-btn-group .toggle-pill-btn');
+        toggleBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const splitVal = parseFloat(btn.dataset.split ?? '50');
+            this.setSplitMode(splitVal, true);
+          });
+        });
       }
     } else if (this.mode === 'hyperopia') {
       if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
@@ -154,9 +171,9 @@ export class PerceptionSimulator {
             <input type="range" class="range-slider" id="slider-hyper" min="1" max="6" value="3" step="0.5">
           </div>
           <div class="toggle-btn-group">
-            <button class="toggle-pill-btn active" id="btn-hyper-50">Comparativa 50/50</button>
-            <button class="toggle-pill-btn" id="btn-hyper-blur">Solo Hipermetropía</button>
-            <button class="toggle-pill-btn" id="btn-hyper-sharp">Solo Corregida</button>
+            <button class="toggle-pill-btn active" id="btn-hyper-50" data-split="50">Comparativa 50/50</button>
+            <button class="toggle-pill-btn" id="btn-hyper-blur" data-split="100">Solo Hipermetropía</button>
+            <button class="toggle-pill-btn" id="btn-hyper-sharp" data-split="0">Solo Corregida</button>
           </div>
         `;
 
@@ -169,9 +186,13 @@ export class PerceptionSimulator {
           this.renderTestScenes();
         });
 
-        controlsEl.querySelector('#btn-hyper-50')?.addEventListener('click', () => this.updateSplit(50));
-        controlsEl.querySelector('#btn-hyper-blur')?.addEventListener('click', () => this.updateSplit(100));
-        controlsEl.querySelector('#btn-hyper-sharp')?.addEventListener('click', () => this.updateSplit(0));
+        const toggleBtns = controlsEl.querySelectorAll('.toggle-btn-group .toggle-pill-btn');
+        toggleBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const splitVal = parseFloat(btn.dataset.split ?? '50');
+            this.setSplitMode(splitVal, true);
+          });
+        });
       }
     } else {
       if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
@@ -189,9 +210,9 @@ export class PerceptionSimulator {
             <input type="range" class="range-slider" id="slider-cyl" min="1" max="5" value="2.5" step="0.5">
           </div>
           <div class="toggle-btn-group">
-            <button class="toggle-pill-btn active" id="btn-astig-50">Comparativa 50/50</button>
-            <button class="toggle-pill-btn" id="btn-astig-blur">Solo Astigmatismo</button>
-            <button class="toggle-pill-btn" id="btn-astig-sharp">Solo Corregida</button>
+            <button class="toggle-pill-btn active" id="btn-astig-50" data-split="50">Comparativa 50/50</button>
+            <button class="toggle-pill-btn" id="btn-astig-blur" data-split="100">Solo Astigmatismo</button>
+            <button class="toggle-pill-btn" id="btn-astig-sharp" data-split="0">Solo Corregida</button>
           </div>
         `;
 
@@ -204,9 +225,13 @@ export class PerceptionSimulator {
           this.renderTestScenes();
         });
 
-        controlsEl.querySelector('#btn-astig-50')?.addEventListener('click', () => this.updateSplit(50));
-        controlsEl.querySelector('#btn-astig-blur')?.addEventListener('click', () => this.updateSplit(100));
-        controlsEl.querySelector('#btn-astig-sharp')?.addEventListener('click', () => this.updateSplit(0));
+        const toggleBtns = controlsEl.querySelectorAll('.toggle-btn-group .toggle-pill-btn');
+        toggleBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const splitVal = parseFloat(btn.dataset.split ?? '50');
+            this.setSplitMode(splitVal, true);
+          });
+        });
       }
     }
   }
@@ -360,43 +385,98 @@ export class PerceptionSimulator {
   }
 
   attachDragListeners() {
+    this.detachDragListeners();
     if (!this.container) return;
 
+    this.sceneEl = document.getElementById('perception-scene');
+
     const onPointerMove = (clientX) => {
-      if (!this.isDragging) return;
-      const sceneEl = document.getElementById('perception-scene');
-      if (!sceneEl) return;
-      const rect = sceneEl.getBoundingClientRect();
+      if (!this.isDragging || !this.sceneEl) return;
+      const rect = this.sceneEl.getBoundingClientRect();
       const x = clientX - rect.left;
       const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+      this.wrapper?.classList.remove('split-animating');
+      this.divider?.classList.remove('split-animating');
       this.updateSplit(percent);
     };
 
-    const onPointerUp = () => {
-      this.isDragging = false;
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', onPointerUp);
-      window.removeEventListener('touchmove', onTouchMove);
-      window.removeEventListener('touchend', onPointerUp);
+    this.boundPointerUp = () => {
+      if (this.isDragging) {
+        this.isDragging = false;
+      }
+      window.removeEventListener('mousemove', this.boundMouseMove);
+      window.removeEventListener('mouseup', this.boundPointerUp);
+      window.removeEventListener('touchmove', this.boundTouchMove);
+      window.removeEventListener('touchend', this.boundPointerUp);
     };
 
-    const onMouseMove = (e) => onPointerMove(e.clientX);
-    const onTouchMove = (e) => {
-      if (e.touches[0]) onPointerMove(e.touches[0].clientX);
+    this.boundMouseMove = (e) => onPointerMove(e.clientX);
+    this.boundTouchMove = (e) => {
+      if (e.touches && e.touches[0]) onPointerMove(e.touches[0].clientX);
     };
 
-    this.divider?.addEventListener('mousedown', (e) => {
+    this.boundDividerDown = (e) => {
       e.preventDefault();
       this.isDragging = true;
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onPointerUp);
-    });
+      this.wrapper?.classList.remove('split-animating');
+      this.divider?.classList.remove('split-animating');
+      window.addEventListener('mousemove', this.boundMouseMove);
+      window.addEventListener('mouseup', this.boundPointerUp);
+    };
 
-    this.divider?.addEventListener('touchstart', (e) => {
+    this.boundDividerTouchStart = (e) => {
       this.isDragging = true;
-      window.addEventListener('touchmove', onTouchMove, { passive: true });
-      window.addEventListener('touchend', onPointerUp);
-    }, { passive: true });
+      this.wrapper?.classList.remove('split-animating');
+      this.divider?.classList.remove('split-animating');
+      window.addEventListener('touchmove', this.boundTouchMove, { passive: true });
+      window.addEventListener('touchend', this.boundPointerUp);
+    };
+
+    this.divider?.addEventListener('mousedown', this.boundDividerDown);
+    this.divider?.addEventListener('touchstart', this.boundDividerTouchStart, { passive: true });
+
+    if (this.sceneEl) {
+      this.boundSceneClick = (e) => {
+        if (this.isDragging || e.target.closest('.divider-handle') || e.target.closest('.perception-tag')) return;
+        const rect = this.sceneEl.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const percent = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        this.setSplitMode(percent, true);
+      };
+      this.sceneEl.addEventListener('click', this.boundSceneClick);
+    }
+  }
+
+  detachDragListeners() {
+    if (this.divider && this.boundDividerDown) {
+      this.divider.removeEventListener('mousedown', this.boundDividerDown);
+    }
+    if (this.divider && this.boundDividerTouchStart) {
+      this.divider.removeEventListener('touchstart', this.boundDividerTouchStart);
+    }
+    if (this.sceneEl && this.boundSceneClick) {
+      this.sceneEl.removeEventListener('click', this.boundSceneClick);
+    }
+    if (this.boundMouseMove) {
+      window.removeEventListener('mousemove', this.boundMouseMove);
+      window.removeEventListener('mouseup', this.boundPointerUp);
+      window.removeEventListener('touchmove', this.boundTouchMove);
+      window.removeEventListener('touchend', this.boundPointerUp);
+    }
+    this.isDragging = false;
+  }
+
+  setSplitMode(percent, animate = true) {
+    if (animate) {
+      this.wrapper?.classList.add('split-animating');
+      this.divider?.classList.add('split-animating');
+      if (this.animTimeout) clearTimeout(this.animTimeout);
+      this.animTimeout = setTimeout(() => {
+        this.wrapper?.classList.remove('split-animating');
+        this.divider?.classList.remove('split-animating');
+      }, 350);
+    }
+    this.updateSplit(percent);
   }
 
   updateSplit(percent) {
@@ -407,5 +487,22 @@ export class PerceptionSimulator {
     if (this.divider) {
       this.divider.style.left = `${percent}%`;
     }
+    this.updateActiveButton(percent);
+  }
+
+  updateActiveButton(percent) {
+    const controlsEl = document.getElementById('card-controls');
+    if (!controlsEl) return;
+    const buttons = controlsEl.querySelectorAll('.toggle-btn-group .toggle-pill-btn');
+    buttons.forEach((btn) => {
+      const splitVal = btn.dataset.split !== undefined ? parseFloat(btn.dataset.split) : null;
+      if (splitVal !== null) {
+        if (Math.abs(splitVal - percent) <= 2) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      }
+    });
   }
 }

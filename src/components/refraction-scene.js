@@ -29,6 +29,27 @@ export class RefractionScene {
       this.astigmatismAngle = 90; // Eje a 90 grados
       this.meridianDifference = 35; // Diferencia focal en px
     }
+
+    this.updateLensParams();
+  }
+
+  /**
+   * Sincroniza la severidad y grosor del lente con el estado actual
+   */
+  updateLensParams() {
+    if (this.mode === 'myopia') {
+      const sev = Math.max(0, Math.min(1, this.geometry.axialElongation / 80));
+      this.lens.setSeverity(sev);
+      return this.geometry.axialElongation < 15 ? 'Normal (Emétrope)' : (this.geometry.axialElongation > 45 ? 'Alta Miopía' : 'Miopía Moderada');
+    } else if (this.mode === 'hyperopia') {
+      const sev = Math.max(0, Math.min(1, Math.abs(this.geometry.axialElongation) / 70));
+      this.lens.setSeverity(sev);
+      return this.geometry.axialElongation < -35 ? 'Alta Hipermetropía' : (this.geometry.axialElongation < -10 ? 'Hipermetropía Moderada' : 'Normal (Emétrope)');
+    } else {
+      const sev = Math.max(0, Math.min(1, (this.meridianDifference - 10) / 50));
+      this.lens.setSeverity(sev);
+      return this.meridianDifference > 30 ? 'Pronunciada' : 'Moderada';
+    }
   }
 
   onEnter(width, height) {
@@ -76,10 +97,13 @@ export class RefractionScene {
               <!-- Slider de Elongación Axial -->
               <div class="dock-control-item">
                 <div class="dock-control-header">
-                  <span>Longitud Axial del Globo Ocular:</span>
-                  <span class="dock-control-val" id="dock-val-param">${this.geometry.axialElongation > 15 ? 'Elongado (Miope)' : 'Normal (Emétrope)'}</span>
+                  <span>Gravedad de la Condición:</span>
+                  <span class="dock-control-val" id="dock-val-param">${this.updateLensParams()}</span>
                 </div>
                 <input type="range" class="range-slider" id="dock-slider" min="0" max="80" value="${this.geometry.axialElongation}">
+                <div class="dock-control-footer">
+                  <span>Longitud axial del globo ocular</span>
+                </div>
               </div>
 
               <!-- Selector de Lente Divergente -->
@@ -122,12 +146,16 @@ export class RefractionScene {
         const btnWithLens = dockEl.querySelector('#dock-btn-with-lens');
         const btnGotoSim = dockEl.querySelector('#btn-goto-simulation');
 
+        const updateMyopiaUI = () => {
+          const label = this.updateLensParams();
+          if (valText) valText.textContent = label;
+        };
+        updateMyopiaUI();
+
         slider?.addEventListener('input', (e) => {
           const val = parseInt(e.target.value, 10);
           this.geometry.axialElongation = val;
-          if (valText) {
-            valText.textContent = val < 15 ? 'Normal (Emétrope)' : (val > 45 ? 'Alta Miopía' : 'Miopía Moderada');
-          }
+          updateMyopiaUI();
         });
 
         btnNoLens?.addEventListener('click', () => {
@@ -162,10 +190,13 @@ export class RefractionScene {
               <!-- Slider de Acortamiento Axial -->
               <div class="dock-control-item">
                 <div class="dock-control-header">
-                  <span>Longitud Axial del Globo Ocular:</span>
-                  <span class="dock-control-val" id="dock-val-param">${this.geometry.axialElongation < -15 ? 'Acortado (Hipermétrope)' : 'Normal (Emétrope)'}</span>
+                  <span>Gravedad de la Condición:</span>
+                  <span class="dock-control-val" id="dock-val-param">${this.updateLensParams()}</span>
                 </div>
                 <input type="range" class="range-slider" id="dock-slider" min="-70" max="0" value="${this.geometry.axialElongation}">
+                <div class="dock-control-footer">
+                  <span>Longitud axial del globo ocular</span>
+                </div>
               </div>
 
               <!-- Selector de Lente Convergente -->
@@ -208,12 +239,16 @@ export class RefractionScene {
         const btnWithLens = dockEl.querySelector('#dock-btn-with-lens');
         const btnGotoSim = dockEl.querySelector('#btn-goto-simulation');
 
+        const updateHyperopiaUI = () => {
+          const label = this.updateLensParams();
+          if (valText) valText.textContent = label;
+        };
+        updateHyperopiaUI();
+
         slider?.addEventListener('input', (e) => {
           const val = parseInt(e.target.value, 10);
           this.geometry.axialElongation = val;
-          if (valText) {
-            valText.textContent = val < -35 ? 'Alta Hipermetropía' : (val < -10 ? 'Hipermetropía Moderada' : 'Normal (Emétrope)');
-          }
+          updateHyperopiaUI();
         });
 
         btnNoLens?.addEventListener('click', () => {
@@ -249,10 +284,13 @@ export class RefractionScene {
               <!-- Slider de Asimetría -->
               <div class="dock-control-item">
                 <div class="dock-control-header">
-                  <span>Asimetría entre Meridianos:</span>
-                  <span class="dock-control-val" id="dock-val-param">${this.meridianDifference > 30 ? 'Pronunciada' : 'Moderada'}</span>
+                  <span>Gravedad de la Condición:</span>
+                  <span class="dock-control-val" id="dock-val-param">${this.updateLensParams()}</span>
                 </div>
                 <input type="range" class="range-slider" id="dock-slider" min="10" max="60" value="${this.meridianDifference}">
+                <div class="dock-control-footer">
+                  <span>Asimetría entre meridianos (curvatura corneal)</span>
+                </div>
               </div>
 
               <!-- Selector de Lente Cilíndrica -->
@@ -295,12 +333,16 @@ export class RefractionScene {
         const btnWithLens = dockEl.querySelector('#dock-btn-with-lens');
         const btnGotoSim = dockEl.querySelector('#btn-goto-simulation');
 
+        const updateAstigUI = () => {
+          const label = this.updateLensParams();
+          if (valText) valText.textContent = label;
+        };
+        updateAstigUI();
+
         slider?.addEventListener('input', (e) => {
           const val = parseInt(e.target.value, 10);
           this.meridianDifference = val;
-          if (valText) {
-            valText.textContent = val > 30 ? 'Pronunciada' : 'Moderada';
-          }
+          updateAstigUI();
         });
 
         btnNoLens?.addEventListener('click', () => {
