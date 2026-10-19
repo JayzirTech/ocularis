@@ -36,7 +36,7 @@ export class SynthesisScene {
       controlsEl.innerHTML = `
         <div class="control-row">
           <div class="toggle-btn-group" style="flex-direction: column;">
-            <button class="toggle-pill-btn active" id="btn-re-myopia" style="text-align: left; padding: 12px 16px;">
+            <button class="toggle-pill-btn" id="btn-re-myopia" style="text-align: left; padding: 12px 16px;">
               <span>🔍 Revisar de nuevo Miopía</span>
             </button>
             <button class="toggle-pill-btn" id="btn-re-hyperopia" style="text-align: left; padding: 12px 16px;">
@@ -45,7 +45,10 @@ export class SynthesisScene {
             <button class="toggle-pill-btn" id="btn-re-astig" style="text-align: left; padding: 12px 16px;">
               <span>📐 Revisar de nuevo Astigmatismo</span>
             </button>
-            <button class="toggle-pill-btn" id="btn-restart-all" style="text-align: left; padding: 12px 16px;">
+            <button class="toggle-pill-btn" id="btn-re-presby" style="text-align: left; padding: 12px 16px;">
+              <span>📖 Revisar de nuevo Presbicia</span>
+            </button>
+            <button class="toggle-pill-btn active" id="btn-restart-all" style="text-align: left; padding: 12px 16px;">
               <span>↺ Reiniciar Experiencia Completa</span>
             </button>
           </div>
@@ -60,6 +63,9 @@ export class SynthesisScene {
       });
       controlsEl.querySelector('#btn-re-astig')?.addEventListener('click', () => {
         stateMachine.jumpTo(States.ASTIGMATISM);
+      });
+      controlsEl.querySelector('#btn-re-presby')?.addEventListener('click', () => {
+        stateMachine.jumpTo(States.PRESBIOPIA);
       });
       controlsEl.querySelector('#btn-restart-all')?.addEventListener('click', () => {
         stateMachine.reset();

@@ -77,7 +77,7 @@
         </div>
         <div class="feature-item">
           <span class="feature-bullet">✦</span>
-          <span>Demostración física de Miopía, Hipermetropía y Astigmatismo</span>
+          <span>Demostración física de Miopía, Hipermetropía, Astigmatismo y Presbicia</span>
         </div>
         <div class="feature-item">
           <span class="feature-bullet">✦</span>
@@ -118,6 +118,7 @@
         <button class="shortcut-pill" data-jump="myopia" title="Refracción Miopía">Miopía</button>
         <button class="shortcut-pill" data-jump="hyperopia" title="Refracción Hipermetropía">Hipermetropía</button>
         <button class="shortcut-pill" data-jump="astigmatism" title="Refracción Astigmatismo">Astigmatismo</button>
+        <button class="shortcut-pill" data-jump="presbyopia" title="Refracción Presbicia">Presbicia</button>
       </div>
 
       <!-- Botón discreto de pantalla completa -->
@@ -157,11 +158,31 @@
 
     <!-- UI Overlay Dinámico por escena -->
     <div id="scene-overlay" class="scene-overlay">
+      <!-- Botón flotante para restaurar la tarjeta en tablet (solo visible cuando está colapsada) -->
+      <button id="btn-restore-card" class="btn-card-restore" type="button" title="Mostrar explicación clínica" aria-label="Mostrar explicación clínica">
+        <span class="restore-dot"></span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>Explicación</span>
+      </button>
+
       <!-- El contenido de la escena actual se inyecta o activa dinámicamente -->
       <div id="scene-card" class="scene-card">
         <div class="card-header">
-          <span class="card-kicker" id="card-kicker">EXPLICACIÓN CLÍNICA</span>
-          <h2 class="card-title" id="card-title">Estructura y Enfoque Ocular</h2>
+          <div class="card-header-text">
+            <span class="card-kicker" id="card-kicker">EXPLICACIÓN CLÍNICA</span>
+            <h2 class="card-title" id="card-title">Estructura y Enfoque Ocular</h2>
+          </div>
+          <!-- Botón para ocultar el cuadro de textos SOLAMENTE en tablet -->
+          <button id="btn-toggle-card" class="btn-card-toggle" type="button" title="Ocultar cuadro para ver el ojo completo" aria-label="Ocultar cuadro de conceptos">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Ocultar</span>
+          </button>
         </div>
         <p class="card-description" id="card-desc">
           En un ojo con visión estándar (emétrope), los haces de luz atraviesan la córnea y el cristalino para converger con máxima precisión sobre la retina.
@@ -294,8 +315,18 @@
           <span class="stage-dot-tooltip">Simulador Astigmatismo</span>
         </button>
         <div class="stage-connector"></div>
-        <button class="stage-dot" data-stage="8" title="9. Síntesis Clínica">
+        <button class="stage-dot" data-stage="8" title="9. Presbicia">
           <span class="stage-dot-number">9</span>
+          <span class="stage-dot-tooltip">Presbicia</span>
+        </button>
+        <div class="stage-connector"></div>
+        <button class="stage-dot" data-stage="9" title="10. Simulación Presbicia">
+          <span class="stage-dot-number">10</span>
+          <span class="stage-dot-tooltip">Simulador Presbicia</span>
+        </button>
+        <div class="stage-connector"></div>
+        <button class="stage-dot" data-stage="10" title="11. Síntesis Clínica">
+          <span class="stage-dot-number">11</span>
           <span class="stage-dot-tooltip">Síntesis Clínica</span>
         </button>
       </div>

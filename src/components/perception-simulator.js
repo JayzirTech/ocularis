@@ -51,6 +51,8 @@ export class PerceptionSimulator {
         blurTag.textContent = 'Visión con Miopía (Desenfoque Lejano)';
       } else if (this.mode === 'hyperopia') {
         blurTag.textContent = 'Visión con Hipermetropía (Desenfoque de Cerca & Fatiga)';
+      } else if (this.mode === 'presbyopia') {
+        blurTag.textContent = 'Visión con Presbicia (Desenfoque de Lectura Cercana)';
       } else {
         blurTag.textContent = 'Visión con Astigmatismo (Distorsión & Sombras)';
       }
@@ -64,6 +66,8 @@ export class PerceptionSimulator {
         btnExitText.textContent = 'Volver a la Explicación de Miopía';
       } else if (this.mode === 'hyperopia') {
         btnExitText.textContent = 'Volver a la Explicación de Hipermetropía';
+      } else if (this.mode === 'presbyopia') {
+        btnExitText.textContent = 'Volver a la Explicación de Presbicia';
       } else {
         btnExitText.textContent = 'Volver a la Explicación de Astigmatismo';
       }
@@ -77,6 +81,8 @@ export class PerceptionSimulator {
           stateMachine.jumpTo(States.MYOPIA);
         } else if (this.mode === 'hyperopia') {
           stateMachine.jumpTo(States.HYPEROPIA);
+        } else if (this.mode === 'presbyopia') {
+          stateMachine.jumpTo(States.PRESBIOPIA);
         } else {
           stateMachine.jumpTo(States.ASTIGMATISM);
         }
@@ -194,6 +200,45 @@ export class PerceptionSimulator {
           });
         });
       }
+    } else if (this.mode === 'presbyopia') {
+      if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
+      if (titleEl) titleEl.textContent = '¿Cómo ve el mundo un paciente con Presbicia (Vista Cansada)?';
+      if (descEl) {
+        descEl.textContent = 'La visión de lejos permanece nítida y despejada, pero los textos, libros y pantallas en plano cercano pierden definición y se vuelven ilegibles por falta de acomodación. Arrastra el divisor para verificar cómo la adición (+D) devuelve la claridad de lectura.';
+      }
+      if (controlsEl) {
+        controlsEl.innerHTML = `
+          <div class="control-row">
+            <div class="control-label">
+              <span>Adición Dióptrica (+ Add) Simulada:</span>
+              <span class="control-val" id="val-presby">+2.00 D</span>
+            </div>
+            <input type="range" class="range-slider" id="slider-presby" min="1" max="3" value="2" step="0.25">
+          </div>
+          <div class="toggle-btn-group">
+            <button class="toggle-pill-btn active" id="btn-presby-50" data-split="50">Comparativa 50/50</button>
+            <button class="toggle-pill-btn" id="btn-presby-blur" data-split="100">Solo Presbicia (Cerca Borrosa)</button>
+            <button class="toggle-pill-btn" id="btn-presby-sharp" data-split="0">Solo Con Adición Corregida</button>
+          </div>
+        `;
+
+        const slider = controlsEl.querySelector('#slider-presby');
+        const valText = controlsEl.querySelector('#val-presby');
+        slider?.addEventListener('input', (e) => {
+          const val = parseFloat(e.target.value);
+          this.blurAmount = val * 3.2;
+          if (valText) valText.textContent = `+${val.toFixed(2)} D`;
+          this.renderTestScenes();
+        });
+
+        const toggleBtns = controlsEl.querySelectorAll('.toggle-btn-group .toggle-pill-btn');
+        toggleBtns.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const splitVal = parseFloat(btn.dataset.split ?? '50');
+            this.setSplitMode(splitVal, true);
+          });
+        });
+      }
     } else {
       if (kickerEl) kickerEl.textContent = 'SIMULADOR DE PERCEPCIÓN';
       if (titleEl) titleEl.textContent = '¿Cómo ve el mundo un paciente con Astigmatismo?';
@@ -277,6 +322,9 @@ export class PerceptionSimulator {
     } else if (this.mode === 'hyperopia') {
       // En hipermetropía la visión de cerca es la más perjudicada
       ctx.filter = `blur(${this.blurAmount * 1.55}px)`;
+    } else if (this.mode === 'presbyopia') {
+      // En presbicia la visión cercana pierde definición por falta de acomodación
+      ctx.filter = `blur(${this.blurAmount * 1.6}px)`;
     } else {
       ctx.filter = `blur(${this.blurAmount * 0.7}px)`;
     }
@@ -290,7 +338,7 @@ export class PerceptionSimulator {
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(chartX, chartY, chartW, chartH);
     ctx.lineWidth = 4;
-    ctx.strokeStyle = this.mode === 'hyperopia' && isBlurred ? '#a855f7' : '#0284c7';
+    ctx.strokeStyle = (this.mode === 'hyperopia' && isBlurred) ? '#a855f7' : ((this.mode === 'presbyopia' && isBlurred) ? '#06b6d4' : '#0284c7');
     ctx.strokeRect(chartX, chartY, chartW, chartH);
 
     // Letras Snellen nítidas
@@ -326,6 +374,9 @@ export class PerceptionSimulator {
       // En hipermetropía la visión lejana se mantiene mucho más clara
       const farBlur = Math.max(0, (this.blurAmount - 6) * 0.25);
       ctx.filter = farBlur > 0 ? `blur(${farBlur}px)` : 'none';
+    } else if (this.mode === 'presbyopia') {
+      // En presbicia pura la visión lejana en reposo permanece nítida
+      ctx.filter = 'none';
     } else {
       ctx.filter = `blur(${this.blurAmount * 0.7}px)`;
     }

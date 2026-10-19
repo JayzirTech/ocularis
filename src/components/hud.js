@@ -91,7 +91,8 @@ export class HudController {
                       (jump === 'anatomy' && toState === States.ANATOMY) ||
                       (jump === 'myopia' && (toState === States.MYOPIA || toState === States.MYOPIA_PERCEPTION)) ||
                       (jump === 'hyperopia' && (toState === States.HYPEROPIA || toState === States.HYPEROPIA_PERCEPTION)) ||
-                      (jump === 'astigmatism' && (toState === States.ASTIGMATISM || toState === States.ASTIGMATISM_PERCEPTION));
+                      (jump === 'astigmatism' && (toState === States.ASTIGMATISM || toState === States.ASTIGMATISM_PERCEPTION)) ||
+                      (jump === 'presbyopia' && (toState === States.PRESBIOPIA || toState === States.PRESBIOPIA_PERCEPTION));
       btn.classList.toggle('active', isMatch);
     });
 

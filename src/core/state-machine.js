@@ -10,6 +10,8 @@ export const States = Object.freeze({
   HYPEROPIA_PERCEPTION: 'hyperopia-perception',
   ASTIGMATISM: 'astigmatism',
   ASTIGMATISM_PERCEPTION: 'astigmatism-perception',
+  PRESBIOPIA: 'presbyopia',
+  PRESBIOPIA_PERCEPTION: 'presbyopia-perception',
   SYNTHESIS: 'synthesis'
 });
 
@@ -22,6 +24,8 @@ export const STAGE_SEQUENCE = [
   States.HYPEROPIA_PERCEPTION,
   States.ASTIGMATISM,
   States.ASTIGMATISM_PERCEPTION,
+  States.PRESBIOPIA,
+  States.PRESBIOPIA_PERCEPTION,
   States.SYNTHESIS
 ];
 
@@ -34,7 +38,9 @@ export const STAGE_TITLES = {
   [States.HYPEROPIA_PERCEPTION]: 'Etapa 6: Simulación de Visión Hipermétrope',
   [States.ASTIGMATISM]: 'Etapa 7: Física del Astigmatismo',
   [States.ASTIGMATISM_PERCEPTION]: 'Etapa 8: Simulación de Visión Astigmática',
-  [States.SYNTHESIS]: 'Etapa 9: Conexión con tu Caso Clínico'
+  [States.PRESBIOPIA]: 'Etapa 9: Física de la Presbicia (Vista Cansada)',
+  [States.PRESBIOPIA_PERCEPTION]: 'Etapa 10: Simulación de Visión con Presbicia',
+  [States.SYNTHESIS]: 'Etapa 11: Conexión con tu Caso Clínico'
 };
 
 class StateMachine {

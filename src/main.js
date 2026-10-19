@@ -24,17 +24,39 @@ class App {
     this.hyperopiaPerceptionScene = new PerceptionSimulator('hyperopia');
     this.astigmatismRefractionScene = new RefractionScene('astigmatism');
     this.astigmatismPerceptionScene = new PerceptionSimulator('astigmatism');
+    this.presbyopiaRefractionScene = new RefractionScene('presbyopia');
+    this.presbyopiaPerceptionScene = new PerceptionSimulator('presbyopia');
     this.synthesisScene = new SynthesisScene();
 
     this.init();
   }
 
   init() {
-    // 1. Verificación de Mobile Gate
+    // 1. Verificación de Mobile Gate y adaptación tablet
     this.checkMobileGate();
-    window.addEventListener('resize', () => this.checkMobileGate());
+    const sceneOverlay = document.getElementById('scene-overlay');
+    window.addEventListener('resize', () => {
+      this.checkMobileGate();
+      if (window.innerWidth > 1024) {
+        sceneOverlay?.classList.remove('collapsed');
+      }
+    });
 
-    // 2. Control de la pantalla de bienvenida / Fullscreen
+    // 2. Control de colapso/restauración de la tarjeta clínica en tablet
+    const btnToggleCard = document.getElementById('btn-toggle-card');
+    const btnRestoreCard = document.getElementById('btn-restore-card');
+
+    btnToggleCard?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sceneOverlay?.classList.add('collapsed');
+    });
+
+    btnRestoreCard?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sceneOverlay?.classList.remove('collapsed');
+    });
+
+    // 3. Control de la pantalla de bienvenida / Fullscreen
     const entryGate = document.getElementById('entry-gate');
     const btnStart = document.getElementById('btn-start-experience');
 
@@ -51,12 +73,12 @@ class App {
       stateMachine.transition(States.EYE_HERO);
     });
 
-    // 3. Orquestador de cambio de escenas con transiciones cinemáticas
+    // 4. Orquestador de cambio de escenas con transiciones cinemáticas
     events.on('state:change', ({ from, to }) => {
       this.handleSceneSwitch(from, to);
     });
 
-    // 4. Pausa de simulación
+    // 5. Pausa de simulación
     events.on('simulation:pause', (isPaused) => {
       this.engine.setPaused(isPaused);
     });
@@ -96,9 +118,12 @@ class App {
     if (from === States.ASTIGMATISM_PERCEPTION) {
       this.astigmatismPerceptionScene.onExit();
     }
+    if (from === States.PRESBIOPIA_PERCEPTION) {
+      this.presbyopiaPerceptionScene.onExit();
+    }
 
     // Ocultar dock de refracción al entrar a cualquiera de los ejemplos de percepción
-    if (to === States.MYOPIA_PERCEPTION || to === States.HYPEROPIA_PERCEPTION || to === States.ASTIGMATISM_PERCEPTION) {
+    if (to === States.MYOPIA_PERCEPTION || to === States.HYPEROPIA_PERCEPTION || to === States.ASTIGMATISM_PERCEPTION || to === States.PRESBIOPIA_PERCEPTION) {
       const dockEl = document.getElementById('refraction-dock');
       if (dockEl) {
         dockEl.style.display = 'none';
@@ -166,6 +191,16 @@ class App {
         case States.ASTIGMATISM_PERCEPTION:
           if (sceneOverlay) sceneOverlay.style.display = 'block';
           this.astigmatismPerceptionScene.onEnter();
+          break;
+
+        case States.PRESBIOPIA:
+          if (sceneOverlay) sceneOverlay.style.display = 'block';
+          this.engine.transitionTo(this.presbyopiaRefractionScene, transitionType, duration);
+          break;
+
+        case States.PRESBIOPIA_PERCEPTION:
+          if (sceneOverlay) sceneOverlay.style.display = 'block';
+          this.presbyopiaPerceptionScene.onEnter();
           break;
 
         case States.SYNTHESIS:

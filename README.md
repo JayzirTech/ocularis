@@ -1,6 +1,6 @@
 # 🔬 Ocularis — Experiencia Educativa Óptica
 
-Herramienta visual interactiva diseñada para la consulta optométrica presencial. Permite al profesional de la salud visual explicar al paciente, de forma clara y cinematográfica, cómo funcionan condiciones como la **miopía**, la **hipermetropía** y el **astigmatismo**, y cómo actúan las lentes correctoras.
+Herramienta visual interactiva diseñada para la consulta optométrica presencial. Permite al profesional de la salud visual explicar al paciente, de forma clara y cinematográfica, cómo funcionan condiciones como la **miopía**, la **hipermetropía**, el **astigmatismo** y la **presbicia (vista cansada)**, y cómo actúan las lentes correctoras (divergentes, convergentes, tóricas y progresivas).
 
 > **No es una herramienta de diagnóstico.** Ocularis ilustra principios ópticos con fines pedagógicos.
 
@@ -23,29 +23,42 @@ Herramienta visual interactiva diseñada para la consulta optométrica presencia
 ### Arquitectura de la Aplicación
 
 ```
-SPA de lienzo único (sin rutas URL)
+SPA de lienzo único (sin recarga ni rutas URL externas)
 │
-├── Máquina de Estados (state-machine.js)
-│   Gobierna las transiciones entre escenas:
-│   Splash → Macro-Ojo → Anatomía → Miopía / Hipermetropía / Astigmatismo → Simulador → Síntesis
+├── Máquina de Estados (state-machine.js) — 11 Etapas pedagógicas:
+│   1. Macro-Ojo General (Vista frontal hero con hotspot interactivo)
+│   2. Corte Sagital Anatómico (Córnea, cristalino, iris, retina, fóvea, nervio óptico)
+│   3. Física de la Miopía (Elongación axial + lente divergente)
+│   4. Simulación de Visión Miópica (Split-Screen interactivo con bokeh lejano)
+│   5. Física de la Hipermetropía (Acortamiento axial + lente convergente)
+│   6. Simulación de Visión Hipermétrope (Split-Screen con desenfoque de cerca)
+│   7. Física del Astigmatismo (Asimetría corneal + lente cilíndrica/tórica)
+│   8. Simulación de Visión Astigmática (Split-Screen con sombras fantasma)
+│   9. Física de la Presbicia (Cristalino rígido + lente progresiva/adición)
+│   10. Simulación de Visión con Presbicia (Split-Screen con lectura borrosa)
+│   11. Síntesis Clínica y Conclusión (Repaso de condiciones y reinicio)
 │
 ├── Motor de Simulación Óptica (simulation/)
-│   Trazado de rayos 2D, cálculo de refracción,
-│   comportamiento de lentes divergentes, convergentes y tóricas
+│   Trazado fotónico de rayos en tiempo real a 60 FPS, cálculo de refracción esférica y cilíndrica,
+│   comportamiento dinámico de lentes divergentes, convergentes, tóricas y progresivas (multifocales).
 │
 ├── Componentes Visuales (components/)
-│   Ojo interactivo, explorador anatómico, slider de percepción,
-│   HUD de controles para el profesional
+│   Macro-ojo interactivo, explorador anatómico sagital, simulador Split-Screen de percepción,
+│   dock de refracción con controles compactos, y HUD de control para el optometrista.
 │
 └── Core (core/)
-    Bus de eventos, detección de dispositivos, gestión de fullscreen
+    Bus de eventos reactivo, máquina de estados finitos, detección de dispositivos y gestión de Fullscreen.
 ```
 
-### Restricciones de Plataforma
+### Características de Plataforma y Responsive
 
-- **Pantalla mínima:** 768px de ancho (tablets y escritorio).
-- **Móviles bloqueados:** Los smartphones muestran una pantalla informativa indicando que la experiencia requiere una pantalla de mayor tamaño.
-- **Fullscreen:** Se activa automáticamente al iniciar la experiencia mediante un botón de entrada (requisito de seguridad del navegador).
+- **Pantalla mínima admitida:** 768px de ancho (tablets y computadores).
+- **Móviles bloqueados (Mobile Gate):** Los smartphones muestran una pantalla informativa indicando que la experiencia clínica requiere pantalla grande (≥768px).
+- **Modo Tableta Optimizado (768px - 1024px):**
+  - Tipografías escaladas y proporcionales para evitar saturación visual.
+  - Cuadro de conceptos compacto con margen despejado frente al ojo.
+  - **Botón exclusivo para Ocultar / Mostrar la explicación:** Permite al optometrista esconder el cuadro de textos para una visualización 100% limpia del globo ocular y reabrirlo con un solo toque mediante un botón flotante minimalista.
+- **Pantalla Completa Nativa:** Activada al iniciar la experiencia mediante un gesto interactivo seguro del usuario.
 
 ### Compatibilidad de Navegadores
 
